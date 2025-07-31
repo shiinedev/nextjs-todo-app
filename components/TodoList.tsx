@@ -1,18 +1,27 @@
 "use client"
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { bulkDeleteTodoAction, deleteTodoAction } from '../actions/todos/delete'
-import { bulkToggleTodo, toggleTodo } from '../actions/todos/toggle'
+import { bulkDeleteTodoAction, deleteTodoAction } from '../app/actions/todos/delete'
+import { bulkToggleTodo, toggleTodo } from '../app/actions/todos/toggle'
 import formatTimeAgo from './FormatTimeAgo'
 import { CalendarRange, Edit, Trash } from 'lucide-react'
-import { Todo } from '../types/todos'
-
-
-
+import { Todo } from '../app/types/todos'
+import { loginUserResponse } from '../app/types/user'
 
 const TodoList = ({ todos }: { todos: Todo[] }) => {
     const [search, setSearch] = useState("")
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [user, setUser] = useState<loginUserResponse | null>(null);
+
+    useEffect(() => {
+        // Check if we're on the client side
+        if (typeof window !== 'undefined') {
+            const authUser = localStorage.getItem("todo-auth")
+                ? JSON.parse(localStorage.getItem("todo-auth")!)
+                : null;
+            setUser(authUser);
+        }
+    }, []);
 
     useEffect(() => {
         setSearch(search)
@@ -22,24 +31,32 @@ const TodoList = ({ todos }: { todos: Todo[] }) => {
     //console.log(filteredTodos);
     
 
-
     const handleBulkDelete = async (ids: string[]) => {
-        if (ids.length == 0) return
+        if (ids.length == 0 || !user?._id) return
 
-        bulkDeleteTodoAction(ids);
+        await bulkDeleteTodoAction(ids, user._id);
         setSelectedIds([]);
-
     }
+    
     const handleBulkToggle = async (ids: string[]) => {
-        if (ids.length == 0) return
+        if (ids.length == 0 || !user?._id) return
 
-        bulkToggleTodo(ids);
+        await bulkToggleTodo(ids, user._id);
         setSelectedIds([]);
+    }
 
+    const handleToggle = async (todoId: string) => {
+        if (!user?._id) return
+        await toggleTodo(todoId, user._id);
+    }
+
+    const handleDelete = async (todoId: string) => {
+        if (!user?._id) return
+        await deleteTodoAction(todoId, user._id);
     }
 
     return (
-        <div className='flex flex-col space-y-2'>
+        <main className='flex flex-col space-y-2'>
             <div className='flex items-center gap-2 mt-4'>
                 <input type="text"
                     value={search}
@@ -90,13 +107,12 @@ const TodoList = ({ todos }: { todos: Todo[] }) => {
                                     className='w-6 border-2'
                                 />
 
-                                <form action={toggleTodo.bind(null, todo._id)} className="flex items-center">
-                                    <button type="submit"
-                                        className="text-2xl hover:scale-110 transition-transform"
-                                        title={todo.isCompleted ? "Mark as incomplete" : "Mark as complete"}>
-                                        {todo.isCompleted ? '✅' : '⬜'}
-                                    </button>
-                                </form>
+                                <button 
+                                    onClick={() => handleToggle(todo._id)}
+                                    className="text-2xl hover:scale-110 transition-transform"
+                                    title={todo.isCompleted ? "Mark as incomplete" : "Mark as complete"}>
+                                    {todo.isCompleted ? '✅' : '⬜'}
+                                </button>
                                 <p className={`flex-1 text-lg ${todo.isCompleted ? 'line-through text-gray-500' : 'text-white'}`}>{todo.title}</p>
 
                                 <p className={`px-2 py-1 rounded-full text-xs font-medium ${todo.priority === 'high'
@@ -111,9 +127,11 @@ const TodoList = ({ todos }: { todos: Todo[] }) => {
                                 {todo?.updatedAt && <span className="flex items-center space-x-2 text-sm"><CalendarRange size={15} />  updated : {formatTimeAgo(todo.updatedAt)}</span>}
                                 <Link href={`/todos/edit/${todo._id}`} className="bg-green-600 p-1 text-white  rounded hover:bg-green-700 cursor-pointer "> <Edit size={20} /></Link>
 
-                                <form action={deleteTodoAction.bind(null, todo._id)}>
-                                    <button className="bg-red-600 p-1 text-white  rounded hover:bg-red-700 cursor-pointer "><Trash size={20} /></button>
-                                </form>
+                                <button 
+                                    onClick={() => handleDelete(todo._id)}
+                                    className="bg-red-600 p-1 text-white  rounded hover:bg-red-700 cursor-pointer ">
+                                    <Trash size={20} />
+                                </button>
 
                             </div>
                         </div>
@@ -130,7 +148,7 @@ const TodoList = ({ todos }: { todos: Todo[] }) => {
 
                 }
             </div>
-        </div>
+        </main>
     )
 }
 

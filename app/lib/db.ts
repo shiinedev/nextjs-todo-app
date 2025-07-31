@@ -20,6 +20,15 @@ export async function connectToDatabase(){
     return { client, db };
 }
 
+export async function getUserCollection(){
+    if(!db) {
+        const { db: database } = await connectToDatabase();
+        return database.collection('users');
+    }
+
+    return db.collection('users');
+}
+
 export async function getTodoCollection(){
     if(!db) {
         const { db: database } = await connectToDatabase();

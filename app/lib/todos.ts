@@ -4,11 +4,16 @@ import { ObjectId } from "mongodb";
 import { Todo, newTodo, updateTodoInput } from "../types/todos";
 import { getTodoCollection } from "./db";
 
-export const fetchTodos = async (): Promise<Todo[]> => {
+export const fetchTodos = async (userId: string): Promise<Todo[]> => {
   try {
     const collection = await getTodoCollection();
     const todos = await collection
       .aggregate([
+        {
+          $match: {
+            userId: userId
+          }
+        },
         {
           $addFields: {
             priorityOrder: {
@@ -40,6 +45,8 @@ export const fetchTodos = async (): Promise<Todo[]> => {
       title: todo.title,
       isCompleted: todo.isCompleted,
       priority: todo.priority,
+      description:todo.description,
+      userId: todo.userId,
       createdAt: todo.createdAt,
       updateAt: todo.updateAt,
     }));
@@ -61,6 +68,8 @@ export const fetchTodoById = async (id: string): Promise<Todo | null> => {
       title: todo.title,
       isCompleted: todo.isCompleted,
       priority: todo.priority,
+      description:todo.description,
+      userId: todo.userId,
       createdAt: todo.createdAt,
       updatedAt: todo.updatedAt,
     };
@@ -118,10 +127,11 @@ export const deleteTodo = async (id: string): Promise<boolean> => {
   }
 };
 
-export const searchTodos = async (title:string): Promise<Todo[]> => {
+export const searchTodos = async (title:string, userId: string): Promise<Todo[]> => {
     try {
       const collection = await getTodoCollection();
       const todos = await collection.find({
+        userId: userId,
         title:{
             $regex:{title},$options:"i"
         }
@@ -132,6 +142,7 @@ export const searchTodos = async (title:string): Promise<Todo[]> => {
         title: todo.title,
         isCompleted: todo.isCompleted,
         priority: todo.priority,
+        userId: todo.userId,
         createdAt: todo.createdAt,
         updateAt: todo.updateAt,
       }));
