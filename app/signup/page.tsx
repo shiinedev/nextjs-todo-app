@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { registerAction } from '../actions/users/register';
+import { useRouter } from 'next/navigation';
 
 
 let initialState = {
@@ -18,6 +19,7 @@ export default function SignupForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
+  const router = useRouter();
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -25,6 +27,7 @@ export default function SignupForm() {
     const formData = new FormData(e.currentTarget);
     formAction(formData);
 
+    router.push("/login");
     initialState = {
       message: "",
       error: "",
