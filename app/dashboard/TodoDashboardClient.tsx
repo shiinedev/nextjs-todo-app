@@ -57,7 +57,7 @@ export default function TodoDashboardClient({ todos: initialTodos }: { todos: To
     } else {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, [user]);
 
   // Function to refresh todos
   const refreshTodos = async () => {
@@ -74,11 +74,7 @@ export default function TodoDashboardClient({ todos: initialTodos }: { todos: To
     }
   };
 
-  // Refresh todos every 5 seconds to keep them in sync
-  useEffect(() => {
-    const interval = setInterval(refreshTodos, 5000);
-    return () => clearInterval(interval);
-  }, [user?._id]);
+  
 
   const {
     todos: filteredTodos,

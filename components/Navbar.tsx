@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle, LayoutDashboard, LogOut, User } from "lucide-react"
+import { CheckCircle, LayoutDashboard} from "lucide-react"
 import { Button } from "./ui/button"
 import { ModeToggle } from "./theme-toggle"
 import Link from "next/link"
