@@ -23,9 +23,9 @@ interface NewTodoDialogProps {
 export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<loginUserResponse | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [state, formAction] = useActionState(createTodoAction, initialState)
+
+  const [state, formAction,isPending] = useActionState(createTodoAction, initialState)
 
   useEffect(() => {
     // Check if we're on the client side
@@ -39,7 +39,7 @@ export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
     const formData = new FormData(e.currentTarget);
     
     // Add the user ID to the form data
@@ -48,19 +48,21 @@ export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
     }
     
     formAction(formData);
-    setOpen(false);
     
+    setOpen(false);
+
     // Refresh the todo list after successful creation
     setTimeout(() => {
       onAction?.();
-      setIsSubmitting(false);
     }, 100);
+
+   
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2" disabled={isSubmitting}>
+        <Button className="flex items-center gap-2" disabled={isPending}>
           <Plus className="h-4 w-4" />
           New Todo
         </Button>
@@ -81,7 +83,7 @@ export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
               id="title"
               name="title"
               placeholder="Enter todo title..."
-              disabled={isSubmitting}
+              disabled={isPending}
             />
           </div>
 
@@ -92,13 +94,13 @@ export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
               name='description'
               placeholder="Enter todo description..."
               rows={3}
-              disabled={isSubmitting}
+              disabled={isPending}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <Select name="priority" defaultValue="medium" disabled={isSubmitting}>
+            <Select name="priority" defaultValue="medium" disabled={isPending}>
               <SelectTrigger className='w-full'>
                 <SelectValue />
               </SelectTrigger>
@@ -112,12 +114,12 @@ export function NewTodoDialog({ onAction }: NewTodoDialogProps) {
 
           <DialogFooter className='flex flex-col sm:flex-row sm:justify-end gap-3'>
             <DialogClose asChild>
-              <Button variant="outline" disabled={isSubmitting}>
+              <Button variant="outline" disabled={isPending}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button type="submit" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Creating...

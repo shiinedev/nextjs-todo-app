@@ -31,11 +31,10 @@ const initialState = {
 export function TodoItem({ todo, onAction }: TodoItemProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [user, setUser] = useState<loginUserResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
 
-  const [state, formAction] = useActionState(updateTodoAction, initialState)
+  const [state, formAction,isPending] = useActionState(updateTodoAction, initialState)
 
   useEffect(() => {
     // Check if we're on the client side
@@ -49,7 +48,6 @@ export function TodoItem({ todo, onAction }: TodoItemProps) {
 
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     const formData = new FormData(e.currentTarget);
     
     // Add the user ID to the form data
@@ -63,7 +61,6 @@ export function TodoItem({ todo, onAction }: TodoItemProps) {
     // Refresh the todo list after successful edit
     setTimeout(() => {
       onAction?.();
-      setIsLoading(false);
     }, 100);
   };
 
@@ -103,7 +100,7 @@ export function TodoItem({ todo, onAction }: TodoItemProps) {
   };
 
   // Show skeleton while loading
-  if (isLoading || isDeleting || isToggling) {
+  if (isPending || isDeleting || isToggling) {
     return <TodoItemSkeleton />;
   }
 
@@ -144,7 +141,7 @@ export function TodoItem({ todo, onAction }: TodoItemProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setEditOpen(true)}
-                    disabled={isLoading}
+                    disabled={isPending}
                     className="h-8 w-8 p-0"
                   >
                     <Edit2 className="h-4 w-4" />
@@ -232,8 +229,8 @@ export function TodoItem({ todo, onAction }: TodoItemProps) {
                   </Button>
                 </DialogClose>
 
-                <Button type='submit' disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Changes'}
+                <Button type='submit' disabled={isPending}>
+                  {isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
               </DialogFooter>
             
